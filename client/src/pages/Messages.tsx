@@ -77,51 +77,62 @@ export default function Messages() {
   useEffect(() => {
     if (!currentUser) return;
 
+    let socket: WebSocket | null = null;
+
     try {
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      // Only setup WebSocket if we have a valid hostname
       const host = window.location.hostname;
-      const port = window.location.port ? `:${window.location.port}` : "";
-      const wsUrl = `${protocol}//${host}${port}/ws`;
+      const port = window.location.port;
       
-      if (!host) {
-        console.error("Cannot connect WebSocket: hostname is missing");
+      if (!host || host === "" || host === "localhost") {
+        // Skip WebSocket setup in invalid hostname scenarios
+        console.debug("WebSocket: Skipping connection (invalid or local hostname)");
         return;
       }
-      
-      const socket = new WebSocket(wsUrl);
+
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const portStr = port ? `:${port}` : "";
+      const wsUrl = `${protocol}//${host}${portStr}/ws`;
+
+      socket = new WebSocket(wsUrl);
 
       socket.onopen = () => {
         console.log("WebSocket connected");
-        socket.send(JSON.stringify({ type: "auth", userId: currentUser.id }));
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ type: "auth", userId: currentUser.id }));
+        }
       };
 
       socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        
-        if (data.type === "new_message") {
-          queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === "new_message") {
+            queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+          }
+        } catch (e) {
+          console.debug("Failed to parse WebSocket message:", e);
         }
       };
 
       socket.onerror = (error) => {
-        console.error("WebSocket error:", error);
+        console.debug("WebSocket error:", error);
       };
 
       socket.onclose = () => {
-        console.log("WebSocket disconnected");
+        console.debug("WebSocket disconnected");
       };
 
       setWs(socket);
-
-      return () => {
-        if (socket.readyState === WebSocket.OPEN) {
-          socket.close();
-        }
-      };
     } catch (error) {
-      console.error("Failed to setup WebSocket:", error);
+      console.debug("Failed to setup WebSocket:", error);
     }
+
+    return () => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.close();
+      }
+    };
   }, [currentUser]);
 
   // Auto-scroll to bottom of messages

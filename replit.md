@@ -42,10 +42,9 @@ Preferred communication style: Simple, everyday language.
 - Development mode includes Vite middleware for hot module replacement
 
 **Database Layer**
-- PostgreSQL as primary database
-- Drizzle ORM for type-safe database queries and schema management
-- Neon serverless PostgreSQL driver for connection pooling
-- Schema-first approach with generated TypeScript types
+- MongoDB as primary database with Mongoose ODM
+- Schema-first approach with proper indexing for performance
+- Separate development and production MongoDB connections
 
 **Database Schema Design**
 - Users table: profiles, authentication metadata, profile images
@@ -55,7 +54,6 @@ Preferred communication style: Simple, everyday language.
 - Follows table: social graph for user relationships
 - Messages table: one-to-one chat history
 - Notifications table: activity feed for likes, comments, follows
-- Sessions table: server-side session storage for authentication
 
 **API Architecture**
 - RESTful endpoints with resource-based routing
@@ -66,35 +64,31 @@ Preferred communication style: Simple, everyday language.
 
 ### Authentication System
 
-**Replit Auth Integration**
-- OpenID Connect (OIDC) flow for secure authentication
-- Passport.js strategy for session management
-- Multiple authentication providers: Google, GitHub, Twitter, Apple, email/password
-- Token-based authentication with refresh token support
-- PostgreSQL-backed session storage using connect-pg-simple
-- Session expiration: 7 days with automatic renewal
+**Email & Password Authentication**
+- Secure authentication using bcryptjs for password hashing
+- Express-session with MemoryStore for session management
+- Session expiration and automatic cleanup
+- Secure HTTP-only cookies
 - User profile synchronization on login
 
 **Session Management**
-- HTTP-only cookies for security
-- Secure flag enabled for production environments
-- CSRF protection through session secrets
-- Automatic session cleanup and TTL management
+- Session-based authentication via express-session
+- Configurable session secret from environment variables
+- Proper session cleanup on logout
 
 ### Real-time Communication
 
 **WebSocket Architecture**
-- Socket.IO for bidirectional real-time communication
+- Native WebSocket (ws package) for bidirectional real-time communication
 - Room-based messaging for one-to-one conversations
-- Online/offline user status tracking
 - Automatic reconnection handling
 - Message delivery confirmation
 
 **Real-time Features**
 - Instant message delivery in chat interface
 - Live notification updates for likes, comments, follows
-- Unread message count synchronization
-- Typing indicators and presence information
+- User search with real-time results
+- Online/offline user status tracking
 
 ### File Upload & Storage
 
@@ -113,6 +107,22 @@ Preferred communication style: Simple, everyday language.
 - Cloudinary URL returned and stored in database
 - Images served directly from Cloudinary CDN
 
+## Features
+
+### Core Features
+- ✅ User authentication (email/password with bcryptjs)
+- ✅ User profiles with bio, follower/following counts
+- ✅ Posts with image uploads via Cloudinary
+- ✅ Like and comment on posts
+- ✅ Follow/unfollow users
+- ✅ Real-time messaging with WebSocket
+- ✅ Search users by name
+- ✅ Direct messaging capabilities
+- ✅ Video call buttons (UI integrated)
+- ✅ Notifications for interactions
+- ✅ Feed based on following
+- ✅ Explore page with search
+
 ## External Dependencies
 
 ### Third-party Services
@@ -122,15 +132,10 @@ Preferred communication style: Simple, everyday language.
 - Configuration: Cloud name, API key, API secret via environment variables
 - Usage: Profile photos, post images with automatic optimization
 
-**Replit Auth**
-- Purpose: Authentication and user identity provider
-- Configuration: Issuer URL, OIDC discovery endpoint
-- Integration: OpenID Connect with Passport.js strategy
-
-**Neon Database**
-- Purpose: Serverless PostgreSQL database hosting
-- Configuration: DATABASE_URL environment variable
-- Features: Connection pooling, WebSocket support for serverless environments
+**MongoDB**
+- Purpose: NoSQL database for data persistence
+- Configuration: MONGODB_URI environment variable
+- Features: Document storage with Mongoose ODM
 
 ### Key Libraries & Frameworks
 
@@ -148,9 +153,9 @@ Preferred communication style: Simple, everyday language.
 
 **Backend Core**
 - Express.js for HTTP server
-- Drizzle ORM for database operations
+- Mongoose for MongoDB operations
 - Passport.js for authentication
-- Socket.IO for WebSocket communication
+- WebSocket (ws) for real-time communication
 - Multer for file uploads
 
 **UI & Styling**
@@ -160,13 +165,160 @@ Preferred communication style: Simple, everyday language.
 - class-variance-authority for component variants
 - date-fns for date formatting
 
-### Environment Configuration
+## Environment Configuration
 
 Required environment variables:
-- `DATABASE_URL`: PostgreSQL connection string
+- `MONGODB_URI`: MongoDB connection string
 - `SESSION_SECRET`: Session encryption key
 - `CLOUDINARY_CLOUD_NAME`: Cloudinary account identifier
 - `CLOUDINARY_API_KEY`: Cloudinary API authentication
 - `CLOUDINARY_API_SECRET`: Cloudinary API secret
-- `ISSUER_URL`: Replit Auth OIDC issuer (defaults to replit.com/oidc)
+
+Optional environment variables:
+- `NODE_ENV`: Set to "production" for production builds
+- `ISSUER_URL`: Replit Auth OIDC issuer (if using Replit Auth)
 - `REPL_ID`: Replit environment identifier
+
+## Recent Changes
+
+### Latest Updates (Current Session)
+
+1. **Fixed WebSocket Connection Issues**
+   - Properly constructs WebSocket URL with hostname and port
+   - Handles missing hostname gracefully
+   - Improved error handling and logging
+
+2. **Implemented User Search**
+   - Added `/api/users/search` endpoint
+   - Searches by firstName, lastName, username, and email
+   - Case-insensitive MongoDB regex search
+   - Excludes current user from results
+   - Limited to 10 results for performance
+
+3. **Integrated Direct Messaging with User Search**
+   - Search box in Messages page
+   - Click to start conversation with searched user
+   - Real-time message sync via WebSocket
+   - Conversation list with last message preview
+
+4. **Added Video/Audio Call Integration**
+   - Video call button in chat header
+   - Audio call button in chat header
+   - WebSocket integration for call notifications
+   - Toast notifications for incoming calls
+
+5. **Deployment Configuration**
+   - Created Dockerfile for containerization
+   - Added docker-compose.yml for local MongoDB setup
+   - Created DEPLOYMENT.md with multi-platform guides
+   - Added deploy.sh script for easy deployment
+   - Updated .env.example with detailed documentation
+
+## Deployment
+
+### Quick Start Deployment
+
+**Option 1: Railway.app (Recommended)**
+```bash
+npm install -g @railway/cli
+railway login
+railway init
+railway add # Add MongoDB
+railway deploy
+```
+
+**Option 2: Docker Compose (Local Development)**
+```bash
+docker-compose up
+```
+
+**Option 3: Production VPS**
+See DEPLOYMENT.md for detailed instructions
+
+### Deployment Checklist
+- [ ] MongoDB connection tested
+- [ ] Cloudinary credentials verified
+- [ ] SESSION_SECRET configured
+- [ ] `npm run build` succeeds
+- [ ] Environment variables set in hosting platform
+- [ ] Domain configured (if using custom domain)
+- [ ] SSL certificate configured
+- [ ] Uptime monitoring enabled
+- [ ] Error tracking setup (optional but recommended)
+
+## Local Development Setup
+
+### Prerequisites
+- Node.js 20+ 
+- MongoDB (local or Atlas)
+- Cloudinary account
+
+### Steps
+
+1. **Clone repository**
+   ```bash
+   git clone https://github.com/yourusername/socialgram.git
+   cd socialgram
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Create .env file**
+   ```bash
+   cp .env.example .env
+   ```
+
+4. **Configure environment variables**
+   Edit `.env` with your:
+   - MongoDB URI
+   - Cloudinary credentials
+   - Session secret
+
+5. **Run development server**
+   ```bash
+   npm run dev
+   ```
+
+6. **Access application**
+   Open http://localhost:5000 in browser
+
+## Production Build
+
+```bash
+# Build
+npm run build
+
+# Start
+npm start
+```
+
+## Troubleshooting
+
+### WebSocket Connection Issues
+- Ensure WebSocket URL is properly constructed
+- Check that server and client use same protocol (ws/wss)
+- Verify port is accessible
+
+### Image Upload Failures
+- Check Cloudinary credentials
+- Verify Cloudinary account has upload permissions
+- Check .env file for correct API keys
+
+### MongoDB Connection Issues
+- Verify MONGODB_URI is correct
+- Check IP allowlist in MongoDB Atlas
+- Ensure database exists
+
+See DEPLOYMENT.md for more troubleshooting
+
+## Next Steps
+
+1. Deploy to production using DEPLOYMENT.md guide
+2. Setup monitoring and error tracking
+3. Configure custom domain
+4. Enable SSL/HTTPS
+5. Setup automated backups
+6. Monitor performance metrics
