@@ -186,9 +186,12 @@ export default function Navbar({ onCreatePost }: { onCreatePost: () => void }) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <Link href={`/profile/${user?.id}`}>
-                <DropdownMenuItem data-testid="menu-profile">Profile</DropdownMenuItem>
-              </Link>
+              <DropdownMenuItem
+                onClick={() => setLocation(`/profile/${user?.id}`)}
+                data-testid="menu-profile"
+              >
+                Profile
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => (window.location.href = "/api/logout")}
                 data-testid="menu-logout"
