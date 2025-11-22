@@ -7,10 +7,10 @@ A full-stack social media platform built with React, Express.js, MongoDB, and re
 ## Features
 
 ### 🔐 Authentication
-- Secure authentication using Replit Auth (OpenID Connect)
-- Login with Google, GitHub, X (Twitter), Apple, or email/password
+- Secure authentication using email/password with bcryptjs hashing
 - Protected routes and authentication middleware
-- Automatic user profile synchronization on login
+- Session-based authentication with express-session
+- User profile synchronization on login
 
 ### 👤 User Features
 - User profiles with bio, profile photo, and stats
@@ -41,7 +41,7 @@ A full-stack social media platform built with React, Express.js, MongoDB, and re
 - Complete chat history persistence in MongoDB
 - Online/offline status tracking
 - Unread message counts
-- Instant notifications for new messages
+- Audio and video call buttons
 
 ### 🔔 Notifications
 - Real-time notifications for likes, comments, and follows
@@ -66,10 +66,10 @@ A full-stack social media platform built with React, Express.js, MongoDB, and re
 - **Express.js** - Web framework
 - **MongoDB** - NoSQL database
 - **Mongoose** - MongoDB object modeling
-- **Replit Auth** - Authentication provider (OpenID Connect)
 - **WebSocket (ws)** - Real-time bidirectional communication
 - **Multer** - File upload handling
 - **Cloudinary** - Cloud image storage and transformation
+- **bcryptjs** - Password hashing
 - **TypeScript** - Type-safe backend development
 
 ### Infrastructure
@@ -80,10 +80,11 @@ A full-stack social media platform built with React, Express.js, MongoDB, and re
 ## Setup Instructions
 
 ### Prerequisites
-- Node.js 20+ installed
-- MongoDB database (local or MongoDB Atlas)
-- Cloudinary account for image uploads
-- Replit account for deployment (optional but recommended)
+- **Node.js 20+** - Download from [nodejs.org](https://nodejs.org/)
+- **npm** - Comes with Node.js
+- **MongoDB Account** - Free tier at [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+- **Cloudinary Account** - Free tier at [cloudinary.com](https://cloudinary.com/)
+- **Git** - For cloning the repository
 
 ### Quick Start on Replit
 
@@ -92,155 +93,135 @@ A full-stack social media platform built with React, Express.js, MongoDB, and re
    - `MONGODB_URI` - Your MongoDB connection string
    - `SESSION_SECRET` - Auto-generated session secret
    - `CLOUDINARY_*` - Already configured
-   - `REPLIT_AUTH` - Auto-configured for Replit Auth
-
 3. Click "Run" to start the development server
-
-### Local Development
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Set up environment variables** - Create a `.env` file in the root:
-   ```env
-   # MongoDB
-   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/socialgram
-   
-   # Session
-   SESSION_SECRET=your-random-secret-key-here
-   
-   # Replit Auth
-   ISSUER_URL=https://replit.com/oidc
-   REPL_ID=your-repl-id
-   
-   # Cloudinary
-   CLOUDINARY_CLOUD_NAME=your-cloud-name
-   CLOUDINARY_API_KEY=your-api-key
-   CLOUDINARY_API_SECRET=your-api-secret
-   
-   # Frontend (Vite env vars must be prefixed with VITE_)
-   VITE_CLOUDINARY_CLOUD_NAME=your-cloud-name
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-   The application will be available at `http://localhost:5000`
-
-### Production Build
-
-1. **Build the frontend:**
-   ```bash
-   npm run build
-   ```
-
-2. **Start the production server:**
-   ```bash
-   npm start
-   ```
-
-   The built app will run on the configured port (default 5000)
-
-## Project Structure
-
-```
-socialgram/
-├── client/                     # React frontend
-│   ├── public/                # Static assets
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── ui/           # Shadcn UI components
-│   │   │   ├── Navbar.tsx    # Navigation bar
-│   │   │   ├── PostCard.tsx  # Post display component
-│   │   │   ├── CreatePostModal.tsx
-│   │   │   └── EditProfileModal.tsx
-│   │   ├── hooks/            # Custom React hooks
-│   │   ├── lib/              # Utility functions
-│   │   │   ├── queryClient.ts
-│   │   │   └── api.ts
-│   │   ├── pages/            # Page components
-│   │   │   ├── Landing.tsx
-│   │   │   ├── Home.tsx
-│   │   │   ├── Explore.tsx
-│   │   │   ├── Profile.tsx
-│   │   │   └── Messages.tsx
-│   │   ├── App.tsx           # Main app component
-│   │   ├── main.tsx          # Vite entry point
-│   │   └── index.css         # Global styles
-│   └── index.html            # HTML template
-├── server/                     # Express backend
-│   ├── db.ts                 # MongoDB connection and models
-│   ├── storage.ts            # Data access layer (CRUD)
-│   ├── routes.ts             # API endpoints
-│   ├── replitAuth.ts         # Replit Auth setup
-│   ├── app.ts                # Express app setup
-│   ├── index-dev.ts          # Development entry point
-│   └── index-prod.ts         # Production entry point
-├── shared/                     # Shared types and schemas
-│   └── schema.ts             # Zod schemas and TypeScript types
-├── package.json              # Dependencies and scripts
-├── tsconfig.json             # TypeScript config
-├── tailwind.config.ts        # Tailwind CSS config
-├── vite.config.ts            # Vite config
-└── README.md                 # This file
-```
-
-## API Endpoints
-
-### Authentication
-- `GET /api/login` - Initiate OAuth login flow
-- `GET /api/callback` - OAuth callback endpoint
-- `GET /api/logout` - Logout user
-- `GET /api/auth/user` - Get current authenticated user
-
-### Posts
-- `POST /api/posts` - Create a new post
-- `GET /api/posts` - Get all posts (paginated)
-- `GET /api/posts?userId=<id>` - Get posts by specific user
-- `GET /api/feed` - Get posts from followed users
-- `GET /api/explore?q=<query>` - Search posts and users
-- `PATCH /api/posts/:postId` - Update post (caption)
-- `DELETE /api/posts/:postId` - Delete a post
-
-### Comments & Interactions
-- `POST /api/posts/:postId/comments` - Add comment to post
-- `GET /api/posts/:postId/comments` - Get post comments
-- `DELETE /api/posts/:postId/comments/:commentId` - Delete comment
-- `POST /api/posts/:postId/like` - Like a post
-- `DELETE /api/posts/:postId/like` - Unlike a post
-
-### Social Features
-- `POST /api/users/:userId/follow` - Follow a user
-- `DELETE /api/users/:userId/follow` - Unfollow a user
-- `GET /api/profile/:userId` - Get user profile with stats
-- `PATCH /api/profile` - Update own profile
-
-### Messaging
-- `POST /api/messages` - Send a message
-- `GET /api/messages/:userId` - Get messages with a user
-- `GET /api/conversations` - Get all conversations
-- `PATCH /api/messages/:userId/read` - Mark messages as read
-
-### Notifications
-- `GET /api/notifications` - Get user notifications
-- `PATCH /api/notifications/:id/read` - Mark notification as read
-- `PATCH /api/notifications/read-all` - Mark all as read
-
-### Media
-- `POST /api/upload` - Upload image to Cloudinary
-
-## Deployment
-
-### Deploy to Replit (Recommended)
-
-1. Fork this repository
-2. Click "Run" to deploy
-3. Environment variables are auto-configured
 4. Click "Publish" to get a public URL
+
+---
+
+## Local Development Setup (Step-by-Step)
+
+### Step 1: Clone and Install Dependencies
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd socialgram
+
+# Install all dependencies
+npm install
+```
+
+### Step 2: Set up MongoDB
+
+**Option A: MongoDB Atlas (Cloud - Recommended)**
+
+1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Sign up for a free account
+3. Create a new project
+4. Create a new cluster (free tier available)
+5. Click "Connect" and choose "Connect your application"
+6. Copy the connection string
+7. Replace `<password>` with your database password
+8. Your URI will look like: `mongodb+srv://username:password@cluster0.xxxxx.mongodb.net/socialgram`
+
+**Option B: MongoDB Local (Desktop)**
+
+1. Download MongoDB from [mongodb.com/try/download/community](https://www.mongodb.com/try/download/community)
+2. Install MongoDB Community Edition
+3. Start MongoDB:
+   ```bash
+   # macOS (with Homebrew)
+   brew services start mongodb-community
+   
+   # Windows - MongoDB runs as a service
+   # Linux
+   sudo systemctl start mongod
+   ```
+4. Your local URI: `mongodb://localhost:27017/socialgram`
+
+### Step 3: Set up Cloudinary for Image Uploads
+
+1. Go to [cloudinary.com](https://cloudinary.com/)
+2. Sign up for a free account
+3. Go to Dashboard to find:
+   - **Cloud Name** - Displayed at the top
+   - **API Key** - Shown in API Keys section
+   - **API Secret** - Shown in API Keys section (keep this secret!)
+
+### Step 4: Create `.env` File
+
+Create a `.env` file in the root directory with:
+
+```env
+# MongoDB Connection
+MONGODB_URI=mongodb+srv://your_username:your_password@cluster0.xxxxx.mongodb.net/socialgram
+
+# Session Secret (create a random string)
+SESSION_SECRET=your-super-secret-random-key-at-least-32-characters-long
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Replit Auth (only needed if using Replit Auth)
+ISSUER_URL=https://replit.com/oidc
+REPL_ID=your-repl-id
+```
+
+**Example with real values:**
+```env
+MONGODB_URI=mongodb+srv://shreyanshy:MySecurePassword123@cluster0.abc123.mongodb.net/socialgram
+SESSION_SECRET=aVeryLongRandomString1234567890abcdefghijklmnopqrstuvwxyz
+CLOUDINARY_CLOUD_NAME=dv4k2p9z5
+CLOUDINARY_API_KEY=123456789012345
+CLOUDINARY_API_SECRET=abcdef_g1h2i3j4k5l6m7n8o9p0
+```
+
+### Step 5: Run the Development Server
+
+```bash
+# Start the development server
+npm run dev
+```
+
+**Expected output:**
+```
+Connecting to MongoDB...
+MongoDB connected successfully
+4:41:47 AM [express] serving on port 5000
+```
+
+The app will be available at: **http://localhost:5000**
+
+### Step 6: Create Your Account
+
+1. Open http://localhost:5000 in your browser
+2. Click "Sign Up"
+3. Enter your email and password
+4. Complete your profile
+5. Start sharing posts!
+
+---
+
+## Production Build & Deployment
+
+### Build for Production
+
+```bash
+# Create production build
+npm run build
+
+# Start production server
+npm start
+```
+
+### Deploy to Replit (Easiest)
+
+1. Fork this repo on Replit
+2. Click "Run" 
+3. Click "Publish" to get a public URL
+4. Share your public Replit URL with friends!
 
 ### Deploy to Railway
 
@@ -260,90 +241,198 @@ socialgram/
 # 4. Deploy automatically on push
 ```
 
+---
+
+## Troubleshooting
+
+### Problem: MongoDB Connection Failed
+```
+Error: ENOTFOUND cluster0.xxxxx.mongodb.net
+```
+**Solution:**
+- Check your `MONGODB_URI` is correct
+- Ensure MongoDB Atlas IP is whitelowed (allow 0.0.0.0/0 for development)
+- Test connection with MongoDB Compass (download from mongodb.com)
+
+### Problem: Cloudinary Upload Not Working
+```
+Error: Upload failed - Invalid API key
+```
+**Solution:**
+- Verify `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET` are correct
+- Check you copied them from the right Cloudinary dashboard
+- Restart server after changing env vars
+
+### Problem: "Cannot find module" or TypeScript errors
+```bash
+# Clear node_modules and reinstall
+rm -rf node_modules package-lock.json
+npm install
+
+# Check TypeScript
+npm run check
+```
+
+### Problem: Port 5000 Already in Use
+```bash
+# Find and kill process using port 5000
+# macOS/Linux:
+lsof -ti:5000 | xargs kill -9
+
+# Windows:
+netstat -ano | findstr :5000
+taskkill /PID <PID> /F
+
+# Or use a different port in server/index-dev.ts
+```
+
+### Problem: Hot Module Reloading Not Working
+- Restart dev server: Press `Ctrl+C` and run `npm run dev` again
+- Clear browser cache: `Ctrl+Shift+Delete`
+- Hard refresh: `Ctrl+Shift+R`
+
+---
+
+## Project Structure
+
+```
+socialgram/
+├── client/                     # React frontend (Vite)
+│   ├── public/                # Static assets
+│   ├── src/
+│   │   ├── components/        # Reusable components
+│   │   │   ├── ui/           # Shadcn UI components
+│   │   │   ├── Navbar.tsx    # Navigation bar
+│   │   │   ├── PostCard.tsx  # Post display component
+│   │   │   └── CreatePostModal.tsx
+│   │   ├── hooks/            # Custom React hooks
+│   │   ├── lib/              # Utility functions
+│   │   │   ├── queryClient.ts
+│   │   │   └── api.ts
+│   │   ├── pages/            # Page components
+│   │   │   ├── Landing.tsx
+│   │   │   ├── Home.tsx
+│   │   │   ├── Explore.tsx
+│   │   │   ├── Profile.tsx
+│   │   │   └── Messages.tsx
+│   │   ├── App.tsx           # Main app component
+│   │   ├── main.tsx          # Vite entry point
+│   │   └── index.css         # Global styles
+│   └── index.html            # HTML template
+│
+├── server/                     # Express backend
+│   ├── db.ts                 # MongoDB schemas & models
+│   ├── storage.ts            # Data access layer (CRUD)
+│   ├── routes.ts             # API endpoints
+│   ├── auth.ts               # Authentication logic
+│   ├── app.ts                # Express app setup
+│   ├── index-dev.ts          # Development entry point
+│   └── index-prod.ts         # Production entry point
+│
+├── shared/                     # Shared code
+│   └── schema.ts             # Zod schemas & TypeScript types
+│
+├── .env                       # Environment variables (CREATE THIS)
+├── package.json              # Dependencies & scripts
+├── tsconfig.json             # TypeScript configuration
+├── tailwind.config.ts        # Tailwind CSS configuration
+├── vite.config.ts            # Vite configuration
+└── README.md                 # This file
+```
+
+---
+
+## API Endpoints Reference
+
+### Authentication
+- `POST /api/auth/signup` - Register new user
+- `POST /api/auth/login` - Login user
+- `GET /api/auth/user` - Get current user (requires auth)
+- `GET /api/logout` - Logout user
+
+### Posts
+- `POST /api/posts` - Create new post
+- `GET /api/posts` - Get all posts
+- `GET /api/feed` - Get feed posts (users you follow)
+- `GET /api/explore` - Get explore posts (with optional search)
+- `DELETE /api/posts/:postId` - Delete post
+
+### Interactions
+- `POST /api/posts/:postId/comments` - Comment on post
+- `POST /api/posts/:postId/like` - Like a post
+- `DELETE /api/posts/:postId/like` - Unlike a post
+
+### Social
+- `POST /api/users/:userId/follow` - Follow user
+- `DELETE /api/users/:userId/follow` - Unfollow user
+- `GET /api/profile/:userId` - Get user profile
+- `PATCH /api/profile` - Update your profile
+
+### Messaging
+- `POST /api/messages` - Send message
+- `GET /api/messages/:userId` - Get messages with user
+- `GET /api/conversations` - Get all conversations
+
+### Notifications
+- `GET /api/notifications` - Get your notifications
+- `PATCH /api/notifications/:id/read` - Mark as read
+
+### Media
+- `POST /api/upload` - Upload image to Cloudinary
+
+---
+
 ## Database Schema (MongoDB Collections)
 
-### Users Collection
+### Users
 ```javascript
 {
-  id: String,              // Unique user ID
-  email: String,           // User email
-  firstName: String,       // First name
-  lastName: String,        // Last name
+  id: String,              // UUID
+  email: String,           // Unique email
+  password: String,        // Hashed password
+  firstName: String,       
+  lastName: String,        
   username: String,        // Unique username
-  profileImageUrl: String, // Profile photo URL
-  bio: String,            // User bio
-  createdAt: Date,        // Account creation time
-  updatedAt: Date         // Last updated
+  profileImageUrl: String, // Cloudinary URL
+  bio: String,            
+  createdAt: Date,        
+  updatedAt: Date         
 }
 ```
 
-### Posts Collection
+### Posts
 ```javascript
 {
-  id: String,             // Unique post ID
+  id: String,             // UUID
   userId: String,         // Author ID
-  imageUrl: String,       // Image URL from Cloudinary
-  caption: String,        // Post caption
+  imageUrl: String,       // Cloudinary URL
+  caption: String,        
   createdAt: Date,
   updatedAt: Date
 }
 ```
 
-### Comments Collection
-```javascript
-{
-  id: String,            // Comment ID
-  postId: String,        // Parent post ID
-  userId: String,        // Commenter ID
-  content: String,       // Comment text
-  createdAt: Date
-}
+### Comments, Likes, Follows, Messages, Notifications
+See README lines 293-345 for full schema details.
+
+---
+
+## Common Commands
+
+```bash
+# Development
+npm run dev              # Start dev server on http://localhost:5000
+
+# Production
+npm run build            # Build for production
+npm start               # Start production server
+npm run check           # Check TypeScript types
+
+# Database
+npm run db:push         # Sync database schema (if using Drizzle)
 ```
 
-### Likes Collection
-```javascript
-{
-  id: String,           // Like ID
-  postId: String,       // Post being liked
-  userId: String,       // User who liked
-  createdAt: Date
-}
-```
-
-### Follows Collection
-```javascript
-{
-  id: String,           // Relationship ID
-  followerId: String,   // User following
-  followingId: String,  // User being followed
-  createdAt: Date
-}
-```
-
-### Messages Collection
-```javascript
-{
-  id: String,          // Message ID
-  senderId: String,    // Sender ID
-  receiverId: String,  // Receiver ID
-  content: String,     // Message text
-  read: Boolean,       // Read status
-  createdAt: Date
-}
-```
-
-### Notifications Collection
-```javascript
-{
-  id: String,         // Notification ID
-  userId: String,     // Recipient ID
-  actorId: String,    // User who triggered notification
-  type: String,       // 'like' | 'comment' | 'follow'
-  postId: String,     // Related post (if applicable)
-  read: Boolean,      // Read status
-  createdAt: Date
-}
-```
+---
 
 ## Features Roadmap
 
@@ -356,25 +445,34 @@ Future enhancements:
 - User recommendations algorithm
 - Live streaming support
 - Video post support
+- Reels / Short videos
+- Voice notes in chat
+- Location-based posts
+
+---
 
 ## Contributing
 
-Contributions are welcome! This is an open-source project built for learning. Feel free to:
-- Report bugs
-- Suggest features
-- Submit pull requests
-- Improve documentation
+Contributions are welcome! This is an open-source project built for learning.
+
+---
 
 ## License
 
-MIT License - feel free to use this project for learning or building your own social platform!
+MIT License - feel free to use this project for learning!
 
 ## Support
 
-For issues, questions, or feature requests, please open an issue on the repository or contact the maintainers.
+For issues or questions:
+1. Check the Troubleshooting section above
+2. Open an issue on the repository
+3. Check MongoDB Atlas logs
+4. Check Cloudinary console
 
 ---
 
 **Built with ❤️ using modern web technologies**
 
 Made for developers who want to learn full-stack development with a practical, real-world project.
+
+Happy coding! 🚀
