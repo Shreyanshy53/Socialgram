@@ -40,3 +40,11 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_database:1.0.0", "javascript_log_in_with_replit:1.0.0", "javascript_websocket:1.0.0"]
+
+[userenv]
+
+[userenv.shared]
+CLOUDINARY_CLOUD_NAME = "dwbacgefp"
+CLOUDINARY_API_KEY = "787496116781526"
+CLOUDINARY_API_SECRET = "E2gRcpl4tCJ8BANyBiIUYXXB3r0"
+VITE_CLOUDINARY_CLOUD_NAME = "dwbacgefp"
