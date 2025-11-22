@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Send, Circle } from "lucide-react";
+import { Send, Circle, Phone, Video } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { User, Message } from "@shared/schema";
 
@@ -21,6 +22,7 @@ interface Conversation {
 
 export default function Messages() {
   const { user: currentUser } = useAuth();
+  const { toast } = useToast();
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
@@ -115,6 +117,40 @@ export default function Messages() {
 
   const selectedConversation = conversations.find(c => c.user.id === selectedUserId);
 
+  const handleAudioCall = () => {
+    if (!selectedConversation) return;
+    const recipientName = `${selectedConversation.user.firstName} ${selectedConversation.user.lastName}`;
+    toast({
+      title: "Calling...",
+      description: `Starting audio call with ${recipientName}`,
+    });
+    if (ws) {
+      ws.send(JSON.stringify({
+        type: "call_initiate",
+        callType: "audio",
+        recipientId: selectedUserId,
+        callerId: currentUser?.id,
+      }));
+    }
+  };
+
+  const handleVideoCall = () => {
+    if (!selectedConversation) return;
+    const recipientName = `${selectedConversation.user.firstName} ${selectedConversation.user.lastName}`;
+    toast({
+      title: "Calling...",
+      description: `Starting video call with ${recipientName}`,
+    });
+    if (ws) {
+      ws.send(JSON.stringify({
+        type: "call_initiate",
+        callType: "video",
+        recipientId: selectedUserId,
+        callerId: currentUser?.id,
+      }));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar onCreatePost={() => setShowCreatePost(true)} />
@@ -197,25 +233,47 @@ export default function Messages() {
             ) : (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={selectedConversation?.user.profileImageUrl || undefined} />
-                    <AvatarFallback>
-                      {getInitials(
-                        selectedConversation?.user.firstName,
-                        selectedConversation?.user.lastName
-                      )}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold">
-                      {selectedConversation?.user.firstName}{" "}
-                      {selectedConversation?.user.lastName}
-                    </p>
-                    <p className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Circle className="h-2 w-2 fill-green-500 text-green-500" />
-                      Online
-                    </p>
+                <div className="p-4 border-b flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={selectedConversation?.user.profileImageUrl || undefined} />
+                      <AvatarFallback>
+                        {getInitials(
+                          selectedConversation?.user.firstName,
+                          selectedConversation?.user.lastName
+                        )}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold">
+                        {selectedConversation?.user.firstName}{" "}
+                        {selectedConversation?.user.lastName}
+                      </p>
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Circle className="h-2 w-2 fill-green-500 text-green-500" />
+                        Online
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={handleAudioCall}
+                      data-testid="button-audio-call"
+                      title="Start audio call"
+                    >
+                      <Phone className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={handleVideoCall}
+                      data-testid="button-video-call"
+                      title="Start video call"
+                    >
+                      <Video className="h-5 w-5" />
+                    </Button>
                   </div>
                 </div>
 
