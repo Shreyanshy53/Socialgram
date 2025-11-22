@@ -46,12 +46,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "No image provided" });
       }
 
+      // Verify Cloudinary is configured
+      if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+        console.error("Cloudinary not configured. Missing env vars:", {
+          cloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+          apiKey: !!process.env.CLOUDINARY_API_KEY,
+          apiSecret: !!process.env.CLOUDINARY_API_SECRET,
+        });
+        return res.status(500).json({ message: "Server not configured for image uploads" });
+      }
+
       // Upload to Cloudinary
       const uploadResult = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           { folder: "socialgram" },
           (error, result) => {
-            if (error) reject(error);
+            if (error) {
+              console.error("Cloudinary upload error:", error);
+              reject(error);
+            }
             else resolve(result);
           }
         );
@@ -61,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ url: (uploadResult as any).secure_url });
     } catch (error) {
       console.error("Error uploading image:", error);
-      res.status(500).json({ message: "Failed to upload image" });
+      res.status(500).json({ message: `Failed to upload image: ${error instanceof Error ? error.message : "Unknown error"}` });
     }
   });
 
