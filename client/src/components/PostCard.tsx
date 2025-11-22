@@ -129,14 +129,16 @@ export default function PostCard({ post, currentUser }: PostCardProps) {
         )}
       </div>
 
-      {/* Post Image */}
-      <div className="aspect-square w-full bg-muted">
-        <img
-          src={post.imageUrl}
-          alt="Post"
-          className="w-full h-full object-cover"
-          data-testid={`post-image-${post.id}`}
-        />
+      {/* Post Image Container with Responsive Media Query */}
+      <div className="w-full bg-muted flex justify-center">
+        <div className="w-full sm:max-w-lg md:max-w-2xl lg:max-w-4xl aspect-square">
+          <img
+            src={post.imageUrl}
+            alt="Post"
+            className="w-full h-full object-cover"
+            data-testid={`post-image-${post.id}`}
+          />
+        </div>
       </div>
 
       {/* Actions */}
