@@ -1,11 +1,5 @@
+import { v4 as uuidv4 } from "crypto";
 import {
-  users,
-  posts,
-  comments,
-  likes,
-  follows,
-  messages,
-  notifications,
   type User,
   type UpsertUser,
   type Post,
@@ -24,8 +18,7 @@ import {
   type UserProfile,
   type NotificationWithDetails,
 } from "@shared/schema";
-import { db } from "./db";
-import { eq, and, or, desc, sql, count, inArray } from "drizzle-orm";
+import { User as UserModel, Post as PostModel, Comment as CommentModel, Like as LikeModel, Follow as FollowModel, Message as MessageModel, Notification as NotificationModel } from "./db";
 
 export interface IStorage {
   // User operations
@@ -75,65 +68,49 @@ export interface IStorage {
   markAllNotificationsAsRead(userId: string): Promise<void>;
 }
 
+function generateId(): string {
+  return uuidv4();
+}
+
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    const user = await UserModel.findOne({ id }).lean();
+    return user as User | null | undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    const user = await UserModel.findOne({ username }).lean();
+    return user as User | null | undefined;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-    return user;
+    const id = userData.id || generateId();
+    const user = await UserModel.findOneAndUpdate(
+      { id },
+      { ...userData, id, updatedAt: new Date() },
+      { upsert: true, new: true, lean: true }
+    );
+    return user as User;
   }
 
   async updateUser(id: string, data: Partial<User>): Promise<User | undefined> {
-    const [user] = await db
-      .update(users)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user;
+    const user = await UserModel.findOneAndUpdate(
+      { id },
+      { ...data, updatedAt: new Date() },
+      { new: true, lean: true }
+    );
+    return user as User | null | undefined;
   }
 
   async getUserProfile(userId: string, currentUserId?: string): Promise<UserProfile | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, userId));
+    const user = await UserModel.findOne({ id: userId }).lean();
     if (!user) return undefined;
 
-    // Count posts
-    const [{ count: postsCount }] = await db
-      .select({ count: count() })
-      .from(posts)
-      .where(eq(posts.userId, userId));
+    const postsCount = await PostModel.countDocuments({ userId });
+    const followersCount = await FollowModel.countDocuments({ followingId: userId });
+    const followingCount = await FollowModel.countDocuments({ followerId: userId });
 
-    // Count followers
-    const [{ count: followersCount }] = await db
-      .select({ count: count() })
-      .from(follows)
-      .where(eq(follows.followingId, userId));
-
-    // Count following
-    const [{ count: followingCount }] = await db
-      .select({ count: count() })
-      .from(follows)
-      .where(eq(follows.followerId, userId));
-
-    // Check if current user is following
     let isFollowing = false;
     if (currentUserId && currentUserId !== userId) {
       isFollowing = await this.isFollowing(currentUserId, userId);
@@ -141,54 +118,55 @@ export class DatabaseStorage implements IStorage {
 
     return {
       ...user,
-      postsCount: Number(postsCount),
-      followersCount: Number(followersCount),
-      followingCount: Number(followingCount),
+      postsCount,
+      followersCount,
+      followingCount,
       isFollowing,
-    };
+    } as UserProfile;
   }
 
   // Post operations
   async createPost(post: InsertPost): Promise<Post> {
-    const [newPost] = await db.insert(posts).values(post).returning();
-    return newPost;
+    const id = post.id || generateId();
+    const newPost = await PostModel.create({ ...post, id, createdAt: new Date(), updatedAt: new Date() });
+    return newPost.toObject() as Post;
   }
 
   async getPost(id: string): Promise<Post | undefined> {
-    const [post] = await db.select().from(posts).where(eq(posts.id, id));
-    return post;
+    const post = await PostModel.findOne({ id }).lean();
+    return post as Post | null | undefined;
   }
 
   async getPosts(userId?: string): Promise<Post[]> {
     if (userId) {
-      return db.select().from(posts).where(eq(posts.userId, userId)).orderBy(desc(posts.createdAt));
+      return PostModel.find({ userId }).sort({ createdAt: -1 }).lean() as Promise<Post[]>;
     }
-    return db.select().from(posts).orderBy(desc(posts.createdAt));
+    return PostModel.find({}).sort({ createdAt: -1 }).lean() as Promise<Post[]>;
   }
 
   async getPostsWithDetails(userId?: string, currentUserId?: string): Promise<PostWithDetails[]> {
-    const postsList = userId
-      ? await db.select().from(posts).where(eq(posts.userId, userId)).orderBy(desc(posts.createdAt))
-      : await db.select().from(posts).orderBy(desc(posts.createdAt));
+    let postsList: Post[];
+    if (userId) {
+      postsList = await PostModel.find({ userId }).sort({ createdAt: -1 }).lean() as Post[];
+    } else {
+      postsList = await PostModel.find({}).sort({ createdAt: -1 }).lean() as Post[];
+    }
 
     const postsWithDetails: PostWithDetails[] = [];
 
     for (const post of postsList) {
-      const [user] = await db.select().from(users).where(eq(users.id, post.userId));
+      const user = await UserModel.findOne({ id: post.userId }).lean() as User;
+      const postLikes = await LikeModel.find({ postId: post.id }).lean() as Like[];
+      const postComments = await CommentModel.find({ postId: post.id }).lean() as Comment[];
       
-      const postLikes = await db.select().from(likes).where(eq(likes.postId, post.id));
-      
-      const postComments = await db.select().from(comments).where(eq(comments.postId, post.id));
       const commentsWithUsers = await Promise.all(
         postComments.map(async (comment) => {
-          const [commentUser] = await db.select().from(users).where(eq(users.id, comment.userId));
+          const commentUser = await UserModel.findOne({ id: comment.userId }).lean() as User;
           return { ...comment, user: commentUser };
         })
       );
 
-      const isLiked = currentUserId
-        ? await this.isPostLiked(post.id, currentUserId)
-        : false;
+      const isLiked = currentUserId ? await this.isPostLiked(post.id, currentUserId) : false;
 
       postsWithDetails.push({
         ...post,
@@ -205,37 +183,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFeedPosts(userId: string): Promise<PostWithDetails[]> {
-    // Get users that current user is following
-    const following = await db
-      .select({ followingId: follows.followingId })
-      .from(follows)
-      .where(eq(follows.followerId, userId));
-
+    const following = await FollowModel.find({ followerId: userId }).lean() as Follow[];
     const followingIds = following.map(f => f.followingId);
     
     if (followingIds.length === 0) {
-      // If not following anyone, return empty array or own posts
       return this.getPostsWithDetails(userId, userId);
     }
 
-    // Get posts from followed users
-    const feedPosts = await db
-      .select()
-      .from(posts)
-      .where(inArray(posts.userId, followingIds))
-      .orderBy(desc(posts.createdAt));
-
+    const feedPosts = await PostModel.find({ userId: { $in: followingIds } }).sort({ createdAt: -1 }).lean() as Post[];
     const postsWithDetails: PostWithDetails[] = [];
 
     for (const post of feedPosts) {
-      const [user] = await db.select().from(users).where(eq(users.id, post.userId));
+      const user = await UserModel.findOne({ id: post.userId }).lean() as User;
+      const postLikes = await LikeModel.find({ postId: post.id }).lean() as Like[];
+      const postComments = await CommentModel.find({ postId: post.id }).lean() as Comment[];
       
-      const postLikes = await db.select().from(likes).where(eq(likes.postId, post.id));
-      
-      const postComments = await db.select().from(comments).where(eq(comments.postId, post.id));
       const commentsWithUsers = await Promise.all(
         postComments.map(async (comment) => {
-          const [commentUser] = await db.select().from(users).where(eq(users.id, comment.userId));
+          const commentUser = await UserModel.findOne({ id: comment.userId }).lean() as User;
           return { ...comment, user: commentUser };
         })
       );
@@ -259,55 +224,48 @@ export class DatabaseStorage implements IStorage {
   async getExplorePosts(currentUserId?: string, searchQuery?: string): Promise<PostWithDetails[]> {
     let postsList: Post[];
 
-    // Simple search implementation - in production, use full-text search
     if (searchQuery) {
-      const searchUsers = await db
-        .select()
-        .from(users)
-        .where(
-          or(
-            sql`${users.firstName} ILIKE ${`%${searchQuery}%`}`,
-            sql`${users.lastName} ILIKE ${`%${searchQuery}%`}`,
-            sql`${users.username} ILIKE ${`%${searchQuery}%`}`
-          )
-        );
+      const searchUsers = await UserModel.find({
+        $or: [
+          { firstName: { $regex: searchQuery, $options: "i" } },
+          { lastName: { $regex: searchQuery, $options: "i" } },
+          { username: { $regex: searchQuery, $options: "i" } },
+        ],
+      }).lean() as User[];
       
       const userIds = searchUsers.map(u => u.id);
       
       if (userIds.length > 0) {
-        postsList = await db.select().from(posts).where(
-          or(
-            inArray(posts.userId, userIds),
-            sql`${posts.caption} ILIKE ${`%${searchQuery}%`}`
-          )
-        ).orderBy(desc(posts.createdAt));
+        postsList = await PostModel.find({
+          $or: [
+            { userId: { $in: userIds } },
+            { caption: { $regex: searchQuery, $options: "i" } },
+          ],
+        }).sort({ createdAt: -1 }).lean() as Post[];
       } else {
-        postsList = await db.select().from(posts).where(
-          sql`${posts.caption} ILIKE ${`%${searchQuery}%`}`
-        ).orderBy(desc(posts.createdAt));
+        postsList = await PostModel.find({
+          caption: { $regex: searchQuery, $options: "i" },
+        }).sort({ createdAt: -1 }).lean() as Post[];
       }
     } else {
-      postsList = await db.select().from(posts).orderBy(desc(posts.createdAt));
+      postsList = await PostModel.find({}).sort({ createdAt: -1 }).lean() as Post[];
     }
 
     const postsWithDetails: PostWithDetails[] = [];
 
     for (const post of postsList) {
-      const [user] = await db.select().from(users).where(eq(users.id, post.userId));
+      const user = await UserModel.findOne({ id: post.userId }).lean() as User;
+      const postLikes = await LikeModel.find({ postId: post.id }).lean() as Like[];
+      const postComments = await CommentModel.find({ postId: post.id }).lean() as Comment[];
       
-      const postLikes = await db.select().from(likes).where(eq(likes.postId, post.id));
-      
-      const postComments = await db.select().from(comments).where(eq(comments.postId, post.id));
       const commentsWithUsers = await Promise.all(
         postComments.map(async (comment) => {
-          const [commentUser] = await db.select().from(users).where(eq(users.id, comment.userId));
+          const commentUser = await UserModel.findOne({ id: comment.userId }).lean() as User;
           return { ...comment, user: commentUser };
         })
       );
 
-      const isLiked = currentUserId
-        ? await this.isPostLiked(post.id, currentUserId)
-        : false;
+      const isLiked = currentUserId ? await this.isPostLiked(post.id, currentUserId) : false;
 
       postsWithDetails.push({
         ...post,
@@ -324,147 +282,122 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updatePost(id: string, data: Partial<Post>): Promise<Post | undefined> {
-    const [post] = await db
-      .update(posts)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(posts.id, id))
-      .returning();
-    return post;
+    const post = await PostModel.findOneAndUpdate(
+      { id },
+      { ...data, updatedAt: new Date() },
+      { new: true, lean: true }
+    );
+    return post as Post | null | undefined;
   }
 
   async deletePost(id: string): Promise<void> {
-    await db.delete(posts).where(eq(posts.id, id));
+    await PostModel.deleteOne({ id });
   }
 
   // Comment operations
   async createComment(comment: InsertComment): Promise<Comment> {
-    const [newComment] = await db.insert(comments).values(comment).returning();
-    return newComment;
+    const id = comment.id || generateId();
+    const newComment = await CommentModel.create({ ...comment, id, createdAt: new Date() });
+    return newComment.toObject() as Comment;
   }
 
   async getCommentsByPost(postId: string): Promise<Comment[]> {
-    return db.select().from(comments).where(eq(comments.postId, postId)).orderBy(desc(comments.createdAt));
+    return CommentModel.find({ postId }).sort({ createdAt: -1 }).lean() as Promise<Comment[]>;
   }
 
   async deleteComment(id: string): Promise<void> {
-    await db.delete(comments).where(eq(comments.id, id));
+    await CommentModel.deleteOne({ id });
   }
 
   // Like operations
   async createLike(like: InsertLike): Promise<Like> {
-    const [newLike] = await db.insert(likes).values(like).returning();
-    return newLike;
+    const id = like.id || generateId();
+    const newLike = await LikeModel.create({ ...like, id, createdAt: new Date() });
+    return newLike.toObject() as Like;
   }
 
   async deleteLike(postId: string, userId: string): Promise<void> {
-    await db.delete(likes).where(and(eq(likes.postId, postId), eq(likes.userId, userId)));
+    await LikeModel.deleteOne({ postId, userId });
   }
 
   async isPostLiked(postId: string, userId: string): Promise<boolean> {
-    const [like] = await db
-      .select()
-      .from(likes)
-      .where(and(eq(likes.postId, postId), eq(likes.userId, userId)));
+    const like = await LikeModel.findOne({ postId, userId });
     return !!like;
   }
 
   // Follow operations
   async createFollow(follow: InsertFollow): Promise<Follow> {
-    const [newFollow] = await db.insert(follows).values(follow).returning();
-    return newFollow;
+    const id = follow.id || generateId();
+    const newFollow = await FollowModel.create({ ...follow, id, createdAt: new Date() });
+    return newFollow.toObject() as Follow;
   }
 
   async deleteFollow(followerId: string, followingId: string): Promise<void> {
-    await db
-      .delete(follows)
-      .where(and(eq(follows.followerId, followerId), eq(follows.followingId, followingId)));
+    await FollowModel.deleteOne({ followerId, followingId });
   }
 
   async isFollowing(followerId: string, followingId: string): Promise<boolean> {
-    const [follow] = await db
-      .select()
-      .from(follows)
-      .where(and(eq(follows.followerId, followerId), eq(follows.followingId, followingId)));
+    const follow = await FollowModel.findOne({ followerId, followingId });
     return !!follow;
   }
 
   async getFollowers(userId: string): Promise<User[]> {
-    const followerRelations = await db
-      .select()
-      .from(follows)
-      .where(eq(follows.followingId, userId));
-
+    const followerRelations = await FollowModel.find({ followingId: userId }).lean() as Follow[];
     const followerIds = followerRelations.map(f => f.followerId);
     
     if (followerIds.length === 0) return [];
 
-    return db.select().from(users).where(inArray(users.id, followerIds));
+    return UserModel.find({ id: { $in: followerIds } }).lean() as Promise<User[]>;
   }
 
   async getFollowing(userId: string): Promise<User[]> {
-    const followingRelations = await db
-      .select()
-      .from(follows)
-      .where(eq(follows.followerId, userId));
-
+    const followingRelations = await FollowModel.find({ followerId: userId }).lean() as Follow[];
     const followingIds = followingRelations.map(f => f.followingId);
     
     if (followingIds.length === 0) return [];
 
-    return db.select().from(users).where(inArray(users.id, followingIds));
+    return UserModel.find({ id: { $in: followingIds } }).lean() as Promise<User[]>;
   }
 
   // Message operations
   async createMessage(message: InsertMessage): Promise<Message> {
-    const [newMessage] = await db.insert(messages).values(message).returning();
-    return newMessage;
+    const id = message.id || generateId();
+    const newMessage = await MessageModel.create({ ...message, id, read: false, createdAt: new Date() });
+    return newMessage.toObject() as Message;
   }
 
   async getMessages(userId1: string, userId2: string): Promise<Message[]> {
-    return db
-      .select()
-      .from(messages)
-      .where(
-        or(
-          and(eq(messages.senderId, userId1), eq(messages.receiverId, userId2)),
-          and(eq(messages.senderId, userId2), eq(messages.receiverId, userId1))
-        )
-      )
-      .orderBy(messages.createdAt);
+    return MessageModel.find({
+      $or: [
+        { senderId: userId1, receiverId: userId2 },
+        { senderId: userId2, receiverId: userId1 },
+      ],
+    }).sort({ createdAt: 1 }).lean() as Promise<Message[]>;
   }
 
   async getConversations(userId: string): Promise<any[]> {
-    const allMessages = await db
-      .select()
-      .from(messages)
-      .where(or(eq(messages.senderId, userId), eq(messages.receiverId, userId)))
-      .orderBy(desc(messages.createdAt));
+    const allMessages = await MessageModel.find({
+      $or: [{ senderId: userId }, { receiverId: userId }],
+    }).sort({ createdAt: -1 }).lean() as Message[];
 
-    // Group by conversation partner
     const conversationMap = new Map();
 
     for (const message of allMessages) {
       const partnerId = message.senderId === userId ? message.receiverId : message.senderId;
       
       if (!conversationMap.has(partnerId)) {
-        const [partner] = await db.select().from(users).where(eq(users.id, partnerId));
+        const partner = await UserModel.findOne({ id: partnerId }).lean() as User;
         
-        // Count unread messages
-        const unreadMessages = await db
-          .select()
-          .from(messages)
-          .where(
-            and(
-              eq(messages.senderId, partnerId),
-              eq(messages.receiverId, userId),
-              eq(messages.read, false)
-            )
-          );
+        const unreadMessages = await MessageModel.countDocuments({
+          senderId: partnerId,
+          receiverId: userId,
+          read: false,
+        });
 
         conversationMap.set(partnerId, {
           user: partner,
           lastMessage: message,
-          unreadCount: unreadMessages.length,
+          unreadCount: unreadMessages,
         });
       }
     }
@@ -473,34 +406,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markMessagesAsRead(userId: string, senderId: string): Promise<void> {
-    await db
-      .update(messages)
-      .set({ read: true })
-      .where(and(eq(messages.receiverId, userId), eq(messages.senderId, senderId)));
+    await MessageModel.updateMany(
+      { receiverId: userId, senderId, read: false },
+      { read: true }
+    );
   }
 
   // Notification operations
   async createNotification(notification: InsertNotification): Promise<Notification> {
-    const [newNotification] = await db.insert(notifications).values(notification).returning();
-    return newNotification;
+    const id = notification.id || generateId();
+    const newNotification = await NotificationModel.create({ ...notification, id, read: false, createdAt: new Date() });
+    return newNotification.toObject() as Notification;
   }
 
   async getNotifications(userId: string): Promise<NotificationWithDetails[]> {
-    const userNotifications = await db
-      .select()
-      .from(notifications)
-      .where(eq(notifications.userId, userId))
-      .orderBy(desc(notifications.createdAt))
-      .limit(50);
-
+    const userNotifications = await NotificationModel.find({ userId }).sort({ createdAt: -1 }).limit(50).lean() as Notification[];
     const notificationsWithDetails: NotificationWithDetails[] = [];
 
     for (const notification of userNotifications) {
-      const [actor] = await db.select().from(users).where(eq(users.id, notification.actorId));
+      const actor = await UserModel.findOne({ id: notification.actorId }).lean() as User;
       
       let post = undefined;
       if (notification.postId) {
-        [post] = await db.select().from(posts).where(eq(posts.id, notification.postId));
+        post = await PostModel.findOne({ id: notification.postId }).lean() as Post;
       }
 
       notificationsWithDetails.push({
@@ -514,11 +442,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markNotificationAsRead(id: string): Promise<void> {
-    await db.update(notifications).set({ read: true }).where(eq(notifications.id, id));
+    await NotificationModel.updateOne({ id }, { read: true });
   }
 
   async markAllNotificationsAsRead(userId: string): Promise<void> {
-    await db.update(notifications).set({ read: true }).where(eq(notifications.userId, userId));
+    await NotificationModel.updateMany({ userId }, { read: true });
   }
 }
 
