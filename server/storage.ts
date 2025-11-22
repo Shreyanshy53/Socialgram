@@ -28,6 +28,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, data: Partial<User>): Promise<User | undefined>;
   getUserProfile(userId: string, currentUserId?: string): Promise<UserProfile | undefined>;
+  searchUsers(query: string, excludeUserId?: string): Promise<User[]>;
   
   // Post operations
   createPost(post: InsertPost): Promise<Post>;
@@ -131,6 +132,19 @@ export class DatabaseStorage implements IStorage {
       followingCount,
       isFollowing,
     } as unknown as UserProfile;
+  }
+
+  async searchUsers(query: string, excludeUserId?: string): Promise<User[]> {
+    const users = await UserModel.find({
+      $or: [
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        { username: { $regex: query, $options: "i" } },
+        { email: { $regex: query, $options: "i" } },
+      ],
+      ...(excludeUserId && { id: { $ne: excludeUserId } }),
+    }).lean().limit(10);
+    return users as unknown as User[];
   }
 
   // Post operations

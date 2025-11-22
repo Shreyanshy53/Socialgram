@@ -27,12 +27,24 @@ export default function Messages() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState("");
   const [ws, setWs] = useState<WebSocket | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery<Conversation[]>({
     queryKey: ["/api/conversations"],
     enabled: !!currentUser,
+  });
+
+  // Search users
+  const { data: searchResults = [], isLoading: searchLoading } = useQuery<User[]>({
+    queryKey: ["/api/users/search", searchQuery],
+    queryFn: async () => {
+      if (!searchQuery.trim()) return [];
+      const res = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery)}`);
+      if (!res.ok) throw new Error("Failed to search users");
+      return res.json();
+    },
   });
 
   // Fetch messages for selected conversation
@@ -65,37 +77,51 @@ export default function Messages() {
   useEffect(() => {
     if (!currentUser) return;
 
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-    const socket = new WebSocket(wsUrl);
-
-    socket.onopen = () => {
-      console.log("WebSocket connected");
-      socket.send(JSON.stringify({ type: "auth", userId: currentUser.id }));
-    };
-
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+    try {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const host = window.location.hostname;
+      const port = window.location.port ? `:${window.location.port}` : "";
+      const wsUrl = `${protocol}//${host}${port}/ws`;
       
-      if (data.type === "new_message") {
-        queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+      if (!host) {
+        console.error("Cannot connect WebSocket: hostname is missing");
+        return;
       }
-    };
+      
+      const socket = new WebSocket(wsUrl);
 
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
+      socket.onopen = () => {
+        console.log("WebSocket connected");
+        socket.send(JSON.stringify({ type: "auth", userId: currentUser.id }));
+      };
 
-    socket.onclose = () => {
-      console.log("WebSocket disconnected");
-    };
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === "new_message") {
+          queryClient.invalidateQueries({ queryKey: ["/api/messages"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+        }
+      };
 
-    setWs(socket);
+      socket.onerror = (error) => {
+        console.error("WebSocket error:", error);
+      };
 
-    return () => {
-      socket.close();
-    };
+      socket.onclose = () => {
+        console.log("WebSocket disconnected");
+      };
+
+      setWs(socket);
+
+      return () => {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.close();
+        }
+      };
+    } catch (error) {
+      console.error("Failed to setup WebSocket:", error);
+    }
   }, [currentUser]);
 
   // Auto-scroll to bottom of messages
@@ -159,12 +185,64 @@ export default function Messages() {
         <div className="flex border rounded-md h-[calc(100vh-200px)]">
           {/* Conversations List */}
           <div className="w-80 border-r flex flex-col">
-            <div className="p-4 border-b">
+            <div className="p-4 border-b space-y-3">
               <h2 className="font-semibold text-lg">Messages</h2>
+              <Input
+                placeholder="Search users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+                data-testid="input-user-search"
+              />
             </div>
 
             <ScrollArea className="flex-1">
-              {conversationsLoading ? (
+              {searchQuery && searchLoading ? (
+                <div className="p-4 space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <Skeleton className="h-12 w-12 rounded-full" />
+                      <div className="flex-1">
+                        <Skeleton className="h-4 w-32 mb-2" />
+                        <Skeleton className="h-3 w-48" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : searchQuery && searchResults.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  No users found
+                </div>
+              ) : searchQuery && searchResults.length > 0 ? (
+                <div className="p-2">
+                  {searchResults.map((user) => (
+                    <div
+                      key={user.id}
+                      onClick={() => {
+                        setSelectedUserId(user.id);
+                        setSearchQuery("");
+                      }}
+                      className="flex items-center gap-3 p-3 rounded-md cursor-pointer hover-elevate"
+                      data-testid={`search-user-${user.id}`}
+                    >
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={user.profileImageUrl || undefined} />
+                        <AvatarFallback>
+                          {getInitials(user.firstName, user.lastName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold truncate">
+                          {user.firstName} {user.lastName}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          @{user.username || user.email}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : conversationsLoading ? (
                 <div className="p-4 space-y-4">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="flex items-center gap-3">
