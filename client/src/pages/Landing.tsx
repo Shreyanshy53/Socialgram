@@ -29,28 +29,28 @@ export default function Landing() {
               <div className="space-y-4">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100/70 backdrop-blur-sm rounded-full border border-red-300/60 shadow-lg">
                   <Sparkles className="h-4 w-4 text-red-600" />
-                  <p className="text-sm font-semibold text-red-700">Premium Social Experience</p>
+                  <p className="text-sm font-semibold text-red-700">For People Who Care About Quality</p>
                 </div>
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight leading-tight text-gray-900">
                   <span className="bg-gradient-to-r from-red-600 via-red-500 to-amber-600 bg-clip-text text-transparent">
-                    Share Your
+                    Capture & Share
                   </span>
                   <br />
-                  <span className="text-gray-900">Finest Moments</span>
+                  <span className="text-gray-900">What Matters Most</span>
                 </h1>
                 <p className="text-lg sm:text-xl text-gray-800 max-w-xl leading-relaxed font-medium">
-                  An elegantly designed social platform for meaningful connections. Share your stories, connect with sophisticated minds, and build a community that values quality.
+                  Stop scrolling through endless feeds. Find real connections with people who appreciate thoughtful storytelling. Post pictures that matter, have conversations that count.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
                   size="lg"
-                  onClick={() => (window.location.href = "/api/login")}
+                  onClick={() => (window.location.href = "/")}
                   data-testid="button-login"
                   className="text-base font-semibold px-8 h-12 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 transition-all text-white shadow-lg"
                 >
-                  Get Started
+                  Join Us
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
                 <Button
@@ -59,23 +59,23 @@ export default function Landing() {
                   onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
                   className="text-base font-semibold px-8 h-12 border-red-300 text-red-700 hover:bg-red-100/70 backdrop-blur-sm bg-white/50"
                 >
-                  Learn More
+                  See What's Different
                 </Button>
               </div>
 
-              {/* Trust Indicators */}
+              {/* Stats */}
               <div className="grid grid-cols-3 gap-4 pt-8 border-t border-red-200/60">
                 <div className="space-y-1">
-                  <p className="text-2xl font-bold text-red-600">100%</p>
-                  <p className="text-xs text-gray-800 font-medium">Free Forever</p>
+                  <p className="text-2xl font-bold text-red-600">Always Free</p>
+                  <p className="text-xs text-gray-800 font-medium">No Hidden Costs</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-2xl font-bold text-red-600">Real-time</p>
-                  <p className="text-xs text-gray-800 font-medium">Instant Chat</p>
+                  <p className="text-2xl font-bold text-red-600">Instant</p>
+                  <p className="text-xs text-gray-800 font-medium">Direct Messages</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-2xl font-bold text-red-600">Secure</p>
-                  <p className="text-xs text-gray-800 font-medium">Enterprise Grade</p>
+                  <p className="text-2xl font-bold text-red-600">Built Right</p>
+                  <p className="text-xs text-gray-800 font-medium">Open Source</p>
                 </div>
               </div>
             </div>
@@ -85,7 +85,7 @@ export default function Landing() {
               <div className="absolute -inset-4 bg-gradient-to-br from-red-200/30 via-amber-100/30 to-red-100/30 rounded-2xl blur-3xl"></div>
               <img 
                 src={heroImage} 
-                alt="Socialgram Community" 
+                alt="Community connections" 
                 className="relative w-full rounded-3xl shadow-2xl border border-red-200/60 hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -93,7 +93,7 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* App Showcase Section */}
+      {/* Experience Section */}
       <div className="relative py-24 overflow-hidden">
         <div className="container max-w-7xl mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -102,7 +102,7 @@ export default function Landing() {
               <div className="absolute -inset-4 bg-gradient-to-r from-red-200/30 via-amber-100/30 to-red-100/30 rounded-2xl blur-3xl"></div>
               <img 
                 src={appMockupImage} 
-                alt="App Interface" 
+                alt="Clean interface" 
                 className="relative w-full max-w-md mx-auto rounded-3xl shadow-2xl border border-red-200/60 hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -111,19 +111,19 @@ export default function Landing() {
             <div className="space-y-6 order-1 lg:order-2">
               <div className="space-y-4">
                 <h2 className="text-4xl sm:text-5xl font-bold text-gray-900">
-                  The Premium Way to Connect
+                  A Cleaner Way Forward
                 </h2>
                 <p className="text-lg text-gray-800 font-medium">
-                  Experience elegant design meets powerful functionality. Share moments with grace, engage thoughtfully, and build meaningful relationships.
+                  No algorithms gaming your attention. No endless scrolling designed to waste hours. Just you, your photos, and people who genuinely care about your story.
                 </p>
               </div>
 
               <div className="space-y-4">
                 {[
-                  { title: "Share Photos Elegantly", desc: "Upload with professional-grade cloud storage" },
-                  { title: "Real-time Conversations", desc: "Instant messaging with seamless connectivity" },
-                  { title: "Smart Notifications", desc: "Stay informed about what matters to you" },
-                  { title: "Refined Performance", desc: "Lightning-fast experience on every device" }
+                  { title: "Beautiful Photo Gallery", desc: "Your memories stored safely with professional-grade cloud service" },
+                  { title: "True Conversations", desc: "Message the people you actually want to talk with, no noise" },
+                  { title: "Control Your Feed", desc: "See posts from people you follow, in order, no surprises" },
+                  { title: "Fast & Responsive", desc: "Works smoothly on anything you use, phone tablet or computer" }
                 ].map((item, i) => (
                   <div key={i} className="flex gap-4 group hover:bg-white/40 p-4 rounded-xl transition-colors backdrop-blur-sm">
                     <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-red-200 to-amber-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform shadow-md">
@@ -141,12 +141,12 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* Features Section */}
+      {/* What You Can Do */}
       <div id="features" className="container max-w-7xl mx-auto px-4 py-24 relative z-10">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Premium Features</h2>
+          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">Everything You'd Actually Want</h2>
           <p className="text-xl text-gray-800 font-medium max-w-2xl mx-auto">
-            Everything you need for a superior social experience
+            Built for real people who want to share without all the chaos
           </p>
         </div>
 
@@ -157,9 +157,9 @@ export default function Landing() {
               <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-red-200 to-amber-100 flex items-center justify-center mx-auto group-hover:scale-125 transition-transform duration-300 shadow-md">
                 <Camera className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Share Photos</h3>
+              <h3 className="text-lg font-bold text-gray-900">Upload Your Shots</h3>
               <p className="text-sm text-gray-800">
-                Upload beautiful moments with professional cloud storage
+                Post photos from your camera roll. We'll keep them looking great no matter the device
               </p>
             </CardContent>
           </Card>
@@ -170,9 +170,9 @@ export default function Landing() {
               <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-red-200 to-amber-100 flex items-center justify-center mx-auto group-hover:scale-125 transition-transform duration-300 shadow-md">
                 <Heart className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Engage & Connect</h3>
+              <h3 className="text-lg font-bold text-gray-900">Support Others</h3>
               <p className="text-sm text-gray-800">
-                Like, comment, and engage meaningfully with your circle
+                Like posts you enjoy and add real comments. It means something when people actually respond
               </p>
             </CardContent>
           </Card>
@@ -183,9 +183,9 @@ export default function Landing() {
               <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-red-200 to-amber-100 flex items-center justify-center mx-auto group-hover:scale-125 transition-transform duration-300 shadow-md">
                 <Users className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Build Your Network</h3>
+              <h3 className="text-lg font-bold text-gray-900">Build Relationships</h3>
               <p className="text-sm text-gray-800">
-                Follow influencers and grow your sophisticated network
+                Follow people you actually know. Watch their stories unfold without random strangers in between
               </p>
             </CardContent>
           </Card>
@@ -196,9 +196,9 @@ export default function Landing() {
               <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-red-200 to-amber-100 flex items-center justify-center mx-auto group-hover:scale-125 transition-transform duration-300 shadow-md">
                 <MessageCircle className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Private Messaging</h3>
+              <h3 className="text-lg font-bold text-gray-900">Real-Time Chat</h3>
               <p className="text-sm text-gray-800">
-                Seamless real-time conversations with zero latency
+                Send messages that arrive instantly. Have actual conversations instead of broadcasting
               </p>
             </CardContent>
           </Card>
@@ -209,9 +209,9 @@ export default function Landing() {
               <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-red-200 to-amber-100 flex items-center justify-center mx-auto group-hover:scale-125 transition-transform duration-300 shadow-md">
                 <TrendingUp className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Discover Trends</h3>
+              <h3 className="text-lg font-bold text-gray-900">Find Content You Like</h3>
               <p className="text-sm text-gray-800">
-                Explore curated content from your community
+                Explore photos and stories from people with interests that match yours. No random algorithm
               </p>
             </CardContent>
           </Card>
@@ -222,9 +222,9 @@ export default function Landing() {
               <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-red-200 to-amber-100 flex items-center justify-center mx-auto group-hover:scale-125 transition-transform duration-300 shadow-md">
                 <Zap className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Blazingly Fast</h3>
+              <h3 className="text-lg font-bold text-gray-900">Works Everywhere</h3>
               <p className="text-sm text-gray-800">
-                Optimized performance for instant load times
+                Optimized to work smooth on your phone, tablet or computer. No lag, no waiting around
               </p>
             </CardContent>
           </Card>
@@ -235,9 +235,9 @@ export default function Landing() {
               <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-red-200 to-amber-100 flex items-center justify-center mx-auto group-hover:scale-125 transition-transform duration-300 shadow-md">
                 <Lock className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Private & Secure</h3>
+              <h3 className="text-lg font-bold text-gray-900">Your Data Is Yours</h3>
               <p className="text-sm text-gray-800">
-                Enterprise-grade security with OAuth protection
+                Built on open source software you can trust. No selling your information or tracking profiles
               </p>
             </CardContent>
           </Card>
@@ -248,35 +248,35 @@ export default function Landing() {
               <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-red-200 to-amber-100 flex items-center justify-center mx-auto group-hover:scale-125 transition-transform duration-300 shadow-md">
                 <Globe className="h-8 w-8 text-red-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900">Global Community</h3>
+              <h3 className="text-lg font-bold text-gray-900">Worldwide Community</h3>
               <p className="text-sm text-gray-800">
-                Connect with refined individuals worldwide
+                Connect with thoughtful people from everywhere. Share cultures and perspectives without borders
               </p>
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Community Section with Image */}
+      {/* Community Section */}
       <div className="relative py-24 overflow-hidden">
         <div className="container max-w-7xl mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Content Left */}
             <div className="space-y-6">
               <h2 className="text-4xl sm:text-5xl font-bold text-gray-900">
-                Join Our Exclusive Community
+                Made for Real People
               </h2>
               <p className="text-lg text-gray-800 font-medium">
-                Connect with millions of thoughtful users sharing their passions. Build real relationships, discover inspiring content, and grow your influence in a refined digital space.
+                Whether you're a photographer sharing your work, a traveler documenting adventures, or just someone who wants to stay connected with friends without the noise, there's a place for you here. Build something meaningful, one photo at a time.
               </p>
               
               <div className="flex gap-4">
                 <Button
                   size="lg"
-                  onClick={() => (window.location.href = "/api/login")}
+                  onClick={() => (window.location.href = "/")}
                   className="text-base font-semibold px-8 h-12 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 transition-all text-white shadow-lg"
                 >
-                  Join Today
+                  Create Your Account
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
@@ -287,7 +287,7 @@ export default function Landing() {
               <div className="absolute -inset-4 bg-gradient-to-r from-red-200/30 via-amber-100/30 to-red-100/30 rounded-2xl blur-3xl"></div>
               <img 
                 src={communityImage} 
-                alt="Global Community" 
+                alt="People connecting" 
                 className="relative w-full rounded-3xl shadow-2xl border border-red-200/60 hover:scale-105 transition-transform duration-500"
               />
             </div>
@@ -295,7 +295,7 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* CTA Section */}
+      {/* Final CTA */}
       <div className="container max-w-7xl mx-auto px-4 py-24 relative z-10">
         <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-red-600 via-red-500 to-red-700 border border-red-600 p-16 md:p-24 shadow-2xl">
           <div className="absolute inset-0 opacity-30">
@@ -312,17 +312,17 @@ export default function Landing() {
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-400/10 rounded-full blur-3xl -z-10"></div>
           
           <div className="text-center space-y-8 relative z-10 max-w-2xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold text-white">Ready to Share Your Story?</h2>
+            <h2 className="text-4xl md:text-5xl font-bold text-white">Ready to Start?</h2>
             <p className="text-xl text-red-100">
-              Join thousands of creators sharing their finest moments. Get started in just 30 seconds.
+              It only takes a minute to sign up. Start sharing moments that matter and connect with people who appreciate quality over quantity.
             </p>
             <Button
               size="lg"
-              onClick={() => (window.location.href = "/api/login")}
+              onClick={() => (window.location.href = "/")}
               data-testid="button-cta-login"
               className="text-base font-semibold px-10 h-14 bg-white hover:bg-gray-100 text-red-600 transition-colors"
             >
-              Create Your Account
+              Start Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
@@ -333,9 +333,9 @@ export default function Landing() {
       <div className="border-t border-red-200/60 py-12 relative z-10 bg-white/40 backdrop-blur-sm">
         <div className="container max-w-7xl mx-auto px-4">
           <div className="text-center space-y-2 text-gray-800">
-            <p className="font-semibold text-gray-900">© 2024 Socialgram. Elegantly Crafted.</p>
-            <p className="text-sm">Built with React, Express, MongoDB, and care</p>
-            <p className="text-xs mt-4">Open source · Privacy first · Always free</p>
+            <p className="font-semibold text-gray-900">© 2024 Socialgram</p>
+            <p className="text-sm">Built by people who care about simple, beautiful design</p>
+            <p className="text-xs mt-4">Open source • Privacy first • Always free</p>
           </div>
         </div>
       </div>
