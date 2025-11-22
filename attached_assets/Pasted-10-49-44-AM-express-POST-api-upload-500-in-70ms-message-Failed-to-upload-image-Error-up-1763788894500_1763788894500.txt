@@ -1,0 +1,21 @@
+10:49:44 AM [express] POST /api/upload 500 in 70ms :: {"message":"Failed to upload image"}
+Error uploading image: Error: Must supply api_key
+    at ensureOption (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\cloudinary\lib\utils\ensureOption.js:19:13)
+    at Object.sign_request (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\cloudinary\lib\utils\index.js:1151:16)
+    at Object.process_request_params (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\cloudinary\lib\utils\index.js:1203:22)
+    at call_api (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\cloudinary\lib\uploader.js:474:18)
+    at Object.upload (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\cloudinary\lib\uploader.js:53:10)
+    at Object.upload_stream (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\cloudinary\lib\uploader.js:40:18)
+    at Object.upload_stream (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\cloudinary\lib\utils\index.js:1402:21)
+    at uploadResult (S:\AI\New folder\MERNConnect\MERNConnect\server\routes.ts:51:50)
+    at new Promise (<anonymous>)
+    at <anonymous> (S:\AI\New folder\MERNConnect\MERNConnect\server\routes.ts:50:34)
+    at Layer.handle [as handle_request] (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\express\lib\router\layer.js:95:5)
+    at next (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\express\lib\router\route.js:149:13)
+    at done (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\multer\lib\make-middleware.js:59:7)
+    at indicateDone (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\multer\lib\make-middleware.js:63:68)
+    at Multipart.<anonymous> (S:\AI\New folder\MERNConnect\MERNConnect\node_modules\multer\lib\make-middleware.js:187:7)
+    at Multipart.emit (node:events:519:28)
+    at emitCloseNT (node:internal/streams/destroy:147:10)
+    at process.processTicksAndRejections (node:internal/process/task_queues:81:21)
+10:51:19 AM [express] POST /api/upload 500 in 93ms :: {"message":"Failed to upload image"}
