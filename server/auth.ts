@@ -74,22 +74,35 @@ export async function setupAuth(app: Express) {
         return res.status(400).json({ message: "Email and password are required" });
       }
 
-      // Find user
-      const user = await storage.getUserByEmail(email);
-      if (!user) {
+      // Find user directly from database to ensure password field is included
+      const { User: UserModel } = await import("./db");
+      const userDoc = await UserModel.findOne({ email }).lean();
+      
+      console.log("Login attempt for:", email);
+      console.log("User found:", !!userDoc);
+      console.log("User password field exists:", userDoc ? !!userDoc.password : false);
+
+      if (!userDoc) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       // Check password
-      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!userDoc.password) {
+        console.error("Password field missing for user:", email);
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const isPasswordValid = await bcrypt.compare(password, userDoc.password);
+      console.log("Password valid:", isPasswordValid);
+
       if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       // Set session
-      req.session.userId = user.id;
+      req.session.userId = userDoc.id;
 
-      res.json({ message: "Login successful", user: { id: user.id, email: user.email } });
+      res.json({ message: "Login successful", user: { id: userDoc.id, email: userDoc.email } });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ message: "Login failed" });
