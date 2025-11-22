@@ -1,9 +1,5 @@
 import mongoose from "mongoose";
 
-if (!process.env.MONGODB_URI) {
-  throw new Error("MONGODB_URI must be set");
-}
-
 // Define schemas
 const userSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
@@ -90,7 +86,23 @@ export const Notification = mongoose.model("Notification", notificationSchema);
 // Connect to MongoDB
 export async function connectDB() {
   if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(process.env.MONGODB_URI!);
+    const mongoUri = process.env.MONGODB_URI;
+    if (!mongoUri) {
+      console.error("MONGODB_URI not set!");
+      throw new Error("MONGODB_URI environment variable is required");
+    }
+    
+    // Clean up URI if it has MONGO_URI= prefix (in case of copy-paste errors)
+    const cleanUri = mongoUri.includes("MONGO_URI=") 
+      ? mongoUri.split("MONGO_URI=")[1] 
+      : mongoUri;
+    
+    console.log("Connecting to MongoDB...");
+    await mongoose.connect(cleanUri, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    console.log("MongoDB connected successfully");
   }
   return mongoose.connection;
 }

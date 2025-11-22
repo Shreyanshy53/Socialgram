@@ -14,6 +14,10 @@ run = ["npm", "run", "start"]
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 35839
+externalPort = 3000
+
 [env]
 PORT = "5000"
 
@@ -48,4 +52,4 @@ CLOUDINARY_CLOUD_NAME = "dwbacgefp"
 CLOUDINARY_API_KEY = "787496116781526"
 CLOUDINARY_API_SECRET = "E2gRcpl4tCJ8BANyBiIUYXXB3r0"
 VITE_CLOUDINARY_CLOUD_NAME = "dwbacgefp"
-MONGODB_URI = "MONGO_URI=mongodb+srv://Shreyanshy53:Yadav%40123@cluster0.rhceowg.mongodb.net/socialmedia"
+MONGODB_URI = "mongodb+srv://Shreyanshy53:Yadav%40123@cluster0.rhceowg.mongodb.net/socialmedia"
