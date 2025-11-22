@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,7 @@ import { useState } from "react";
 
 export default function Navbar({ onCreatePost }: { onCreatePost: () => void }) {
   const { user } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: notifications = [] } = useQuery<NotificationWithDetails[]>({
@@ -52,11 +52,9 @@ export default function Navbar({ onCreatePost }: { onCreatePost: () => void }) {
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container max-w-6xl mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/">
-          <a className="text-xl font-bold" data-testid="link-home">
-            Socialgram
-          </a>
-        </Link>
+        <button onClick={() => setLocation("/")} className="text-xl font-bold hover:opacity-80" data-testid="link-home">
+          Socialgram
+        </button>
 
         {/* Search */}
         <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-md mx-8">
@@ -75,27 +73,25 @@ export default function Navbar({ onCreatePost }: { onCreatePost: () => void }) {
 
         {/* Navigation Icons */}
         <div className="flex items-center gap-2 md:gap-4">
-          <Link href="/">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={location === "/" ? "bg-accent" : ""}
-              data-testid="button-nav-home"
-            >
-              <Home className="h-6 w-6" />
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setLocation("/")}
+            className={location === "/" ? "bg-accent" : ""}
+            data-testid="button-nav-home"
+          >
+            <Home className="h-6 w-6" />
+          </Button>
 
-          <Link href="/explore">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={location === "/explore" ? "bg-accent" : ""}
-              data-testid="button-nav-explore"
-            >
-              <Compass className="h-6 w-6" />
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setLocation("/explore")}
+            className={location === "/explore" ? "bg-accent" : ""}
+            data-testid="button-nav-explore"
+          >
+            <Compass className="h-6 w-6" />
+          </Button>
 
           <Button
             variant="ghost"
@@ -106,16 +102,15 @@ export default function Navbar({ onCreatePost }: { onCreatePost: () => void }) {
             <PlusSquare className="h-6 w-6" />
           </Button>
 
-          <Link href="/messages">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={location === "/messages" ? "bg-accent" : ""}
-              data-testid="button-nav-messages"
-            >
-              <MessageCircle className="h-6 w-6" />
-            </Button>
-          </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setLocation("/messages")}
+            className={location === "/messages" ? "bg-accent" : ""}
+            data-testid="button-nav-messages"
+          >
+            <MessageCircle className="h-6 w-6" />
+          </Button>
 
           {/* Notifications Dropdown */}
           <DropdownMenu>
