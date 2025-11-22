@@ -4,7 +4,7 @@ import { Camera, Heart, MessageCircle, Users, Zap, Globe, Lock, TrendingUp, Arro
 import heroImage from "@assets/generated_images/social_media_community_hero.png";
 import appMockupImage from "@assets/generated_images/social_app_interface_mockup.png";
 import communityImage from "@assets/generated_images/global_community_connection.png";
-import backgroundImage from "@assets/generated_images/elegant_red_luxury_background.png";
+import backgroundImage from "@assets/generated_images/minimalist_elegant_background.png";
 
 export default function Landing() {
   return (
