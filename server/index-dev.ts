@@ -11,18 +11,22 @@ import viteConfig from "../vite.config";
 import runApp from "./app";
 
 // Load environment variables from .env file
-const result = dotenv.config();
+// Use explicit path to root .env file
+const envPath = path.resolve(import.meta.dirname, "..", ".env");
+const result = dotenv.config({ path: envPath });
+
+console.log("Loading .env from:", envPath);
 if (result.error) {
-  console.error("Error loading .env file:", result.error);
+  console.error("Warning: .env file not found, using existing environment variables");
 } else {
   console.log("✓ .env file loaded successfully");
-  console.log("Cloudinary config loaded:", {
-    cloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
-    apiKey: !!process.env.CLOUDINARY_API_KEY,
-    apiSecret: !!process.env.CLOUDINARY_API_SECRET,
-    mongoUri: !!process.env.MONGODB_URI,
-  });
 }
+console.log("Cloudinary config loaded:", {
+  cloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+  apiKey: !!process.env.CLOUDINARY_API_KEY,
+  apiSecret: !!process.env.CLOUDINARY_API_SECRET,
+  mongoUri: !!process.env.MONGODB_URI,
+});
 
 export async function setupVite(app: Express, server: Server) {
   const viteLogger = createLogger();
