@@ -36,6 +36,7 @@ export default function Signup() {
   async function onSubmit(data: SignupFormData) {
     setIsLoading(true);
     try {
+      console.log("Submitting signup with:", data);
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -45,18 +46,22 @@ export default function Signup() {
           email: data.email,
           password: data.password,
         }),
+        credentials: "include",
       });
 
+      const responseData = await response.json();
+      console.log("Signup response:", responseData);
+
       if (!response.ok) {
-        const error = await response.json();
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+        toast({ title: "Error", description: responseData.message || "Signup failed", variant: "destructive" });
         return;
       }
 
       toast({ title: "Success", description: "Account created successfully!" });
-      setLocation("/");
+      setTimeout(() => setLocation("/"), 500);
     } catch (error) {
-      toast({ title: "Error", description: "Signup failed", variant: "destructive" });
+      console.error("Signup error:", error);
+      toast({ title: "Error", description: "Signup failed - " + (error as Error).message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +84,7 @@ export default function Signup() {
                   <FormItem>
                     <FormLabel>First Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} />
+                      <Input placeholder="John" {...field} data-testid="input-firstName" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -92,7 +97,7 @@ export default function Signup() {
                   <FormItem>
                     <FormLabel>Last Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} />
+                      <Input placeholder="Doe" {...field} data-testid="input-lastName" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -105,7 +110,7 @@ export default function Signup() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
+                      <Input type="email" placeholder="you@example.com" {...field} data-testid="input-email" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -118,7 +123,7 @@ export default function Signup() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" placeholder="••••••••" {...field} data-testid="input-password" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -131,13 +136,18 @@ export default function Signup() {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" placeholder="••••••••" {...field} data-testid="input-confirmPassword" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600" 
+                disabled={isLoading}
+                data-testid="button-submit"
+              >
                 {isLoading ? "Creating account..." : "Create Account"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -148,6 +158,7 @@ export default function Signup() {
             <button
               onClick={() => setLocation("/login")}
               className="text-red-600 hover:underline font-semibold"
+              data-testid="link-login"
             >
               Sign in
             </button>

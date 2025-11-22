@@ -30,22 +30,27 @@ export default function Login() {
   async function onSubmit(data: LoginFormData) {
     setIsLoading(true);
     try {
+      console.log("Submitting login with:", data);
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+        credentials: "include",
       });
 
+      const responseData = await response.json();
+      console.log("Login response:", responseData);
+
       if (!response.ok) {
-        const error = await response.json();
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+        toast({ title: "Error", description: responseData.message || "Login failed", variant: "destructive" });
         return;
       }
 
       toast({ title: "Success", description: "Logged in successfully!" });
-      setLocation("/");
+      setTimeout(() => setLocation("/"), 500);
     } catch (error) {
-      toast({ title: "Error", description: "Login failed", variant: "destructive" });
+      console.error("Login error:", error);
+      toast({ title: "Error", description: "Login failed - " + (error as Error).message, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -68,7 +73,7 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="you@example.com" {...field} />
+                      <Input type="email" placeholder="you@example.com" {...field} data-testid="input-email" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -81,13 +86,18 @@ export default function Login() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" placeholder="••••••••" {...field} data-testid="input-password" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600" 
+                disabled={isLoading}
+                data-testid="button-submit"
+              >
                 {isLoading ? "Signing in..." : "Sign In"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -98,6 +108,7 @@ export default function Login() {
             <button
               onClick={() => setLocation("/signup")}
               className="text-red-600 hover:underline font-semibold"
+              data-testid="link-signup"
             >
               Sign up
             </button>
