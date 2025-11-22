@@ -76,8 +76,10 @@ function generateId(): string {
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
-    const user = await UserModel.findOne({ id }).select("-password").lean();
-    return (user || undefined) as User | undefined;
+    const user = await UserModel.findOne({ id }).lean();
+    if (!user) return undefined;
+    const { password, ...userWithoutPassword } = user as any;
+    return userWithoutPassword as User;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -86,7 +88,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    const user = await UserModel.findOne({ email }).select("+password").lean();
+    const user = await UserModel.findOne({ email }).lean();
     return (user || undefined) as User | undefined;
   }
 

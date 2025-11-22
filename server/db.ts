@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
   email: { type: String },
+  password: { type: String },
   firstName: { type: String },
   lastName: { type: String },
   profileImageUrl: { type: String },
