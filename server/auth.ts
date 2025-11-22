@@ -14,11 +14,12 @@ export function getSession() {
   return session({
     secret: SESSION_SECRET,
     store: sessionStore,
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
       maxAge: sessionTtl,
     },
   });
@@ -57,6 +58,9 @@ export async function setupAuth(app: Express) {
 
       // Set session
       req.session.userId = user.id;
+      req.session.save((err) => {
+        if (err) console.error("Session save error:", err);
+      });
 
       res.json({ message: "User registered successfully", user: { id: user.id, email: user.email } });
     } catch (error) {
@@ -101,6 +105,9 @@ export async function setupAuth(app: Express) {
 
       // Set session
       req.session.userId = userDoc.id;
+      req.session.save((err) => {
+        if (err) console.error("Session save error:", err);
+      });
 
       res.json({ message: "Login successful", user: { id: userDoc.id, email: userDoc.email } });
     } catch (error) {

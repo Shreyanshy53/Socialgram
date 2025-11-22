@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { ArrowRight } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -47,7 +48,8 @@ export default function Login() {
       }
 
       toast({ title: "Success", description: "Logged in successfully!" });
-      setTimeout(() => setLocation("/"), 500);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
     } catch (error) {
       console.error("Login error:", error);
       toast({ title: "Error", description: "Login failed - " + (error as Error).message, variant: "destructive" });

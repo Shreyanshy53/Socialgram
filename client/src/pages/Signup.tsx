@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { ArrowRight } from "lucide-react";
+import { queryClient } from "@/lib/queryClient";
 
 const signupSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -58,7 +59,8 @@ export default function Signup() {
       }
 
       toast({ title: "Success", description: "Account created successfully!" });
-      setTimeout(() => setLocation("/"), 500);
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      setLocation("/");
     } catch (error) {
       console.error("Signup error:", error);
       toast({ title: "Error", description: "Signup failed - " + (error as Error).message, variant: "destructive" });
