@@ -15,6 +15,12 @@ import {
 } from "@shared/schema";
 
 // Configure Cloudinary
+console.log("Configuring Cloudinary with:", {
+  cloudName: process.env.CLOUDINARY_CLOUD_NAME ? "✓ set" : "✗ missing",
+  apiKey: process.env.CLOUDINARY_API_KEY ? "✓ set" : "✗ missing",
+  apiSecret: process.env.CLOUDINARY_API_SECRET ? "✓ set" : "✗ missing",
+});
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,

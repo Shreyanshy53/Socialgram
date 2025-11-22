@@ -11,7 +11,18 @@ import viteConfig from "../vite.config";
 import runApp from "./app";
 
 // Load environment variables from .env file
-dotenv.config();
+const result = dotenv.config();
+if (result.error) {
+  console.error("Error loading .env file:", result.error);
+} else {
+  console.log("✓ .env file loaded successfully");
+  console.log("Cloudinary config loaded:", {
+    cloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: !!process.env.CLOUDINARY_API_KEY,
+    apiSecret: !!process.env.CLOUDINARY_API_SECRET,
+    mongoUri: !!process.env.MONGODB_URI,
+  });
+}
 
 export async function setupVite(app: Express, server: Server) {
   const viteLogger = createLogger();
