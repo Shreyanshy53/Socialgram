@@ -4,7 +4,8 @@ import { z } from "zod";
 export const userSchema = z.object({
   _id: z.string().optional(),
   id: z.string(),
-  email: z.string().email().optional(),
+  email: z.string().email(),
+  password: z.string(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   profileImageUrl: z.string().optional(),
